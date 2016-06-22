@@ -1,0 +1,47 @@
+---
+- name: configure the BGP neighbor through bgp role
+  hosts: switches@travis
+  gather_facts: no
+  vars:
+    ansible_user: admin
+    ops_debug: yes
+    cli:
+      username: netop
+      password: netop
+      host: "{{ ansible_host }}"
+      port: "{{ ansible_port }}"
+
+  roles:
+    - role: bgp
+      ops_vrfs:
+        - name: vrf_default
+          bgp_routers:
+            - as_number: 65000
+              router_id: 172.16.0.1
+              neighbors:
+                - address: 172.16.1.2
+                  remote_as: 65001
+                - address: 172.16.2.2
+                  remote_as: 65002
+                - address: 172.16.3.2
+                  remote_as: 65003
+
+  post_tasks:
+    - name: check the bgp neighbors on the switch
+      ops_command:
+        commands:
+          - show running-config
+        provider: "{{ cli }}"
+        waitfor:
+          - "result[0] contains 'router bgp 65000'"
+          - "result[0] contains 'bgp router-id 172.16.0.1'"
+          - "result[0] contains 'neighbor 172.16.1.2 remote-as 65001'"
+          - "result[0] contains 'neighbor 172.16.2.2 remote-as 65002'"
+          - "result[0] contains 'neighbor 172.16.3.2 remote-as 65003'"
+        interval: 1
+        retries: 2
+      register: result
+      connection: local
+    - name: debug the result
+      debug: var=result
+      when: ops_debug
