@@ -1,0 +1,27 @@
+---
+- name: check switch health
+  hosts: fabrics
+  gather_facts: no
+  vars:
+    ansible_user: admin
+  tasks:
+    - name: check the reachability
+      ping:
+              
+- name: check switch health
+  hosts: spines
+  gather_facts: no
+  vars:
+    ansible_user: admin
+  tasks:
+    - name: check the reachability
+      ping:
+              
+- name: check switch health
+  hosts: leaves
+  gather_facts: no
+  vars:
+    ansible_user: admin
+  tasks:
+    - name: check the reachability
+      ping:

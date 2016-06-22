@@ -1,0 +1,75 @@
+---
+- name: setup docker host
+  hosts: docker
+  gather_facts: no
+  tasks:
+    - name: create temp server directory for docker-compose
+      file: path=server state=directory
+    - name: copy files needed to create OpenSwitch docker instance
+      copy: src={{ item.src }} dest=~/{{ item.dst }}
+      with_items:
+        - { src: "{{ docker_compose_file }}", dst: docker-compose.yaml }
+        - { src: Dockerfile, dst: Dockerfile }
+        - { src: "~/.ssh/{{ your_public_key}}", dst: "{{ your_public_key }}" }
+        - { src: ops-if-netns.sh, dst: ops-if-netns.sh }
+        - { src: "{{ docker_server_file }}", dst: server/Dockerfile }
+        - { src: "~/.ssh/{{ your_public_key}}",
+            dst: "server/{{ your_public_key }}" }
+    - name: install pip
+      become: yes
+      easy_install: name=pip state=present
+    - name: install docker-compose
+      become: yes
+      pip: name=docker-compose state=present
+    - name: build switch and server docker image through utils/*/Dockerfile
+      become: yes
+      command: docker-compose build
+    - name: run all the container
+      command: docker-compose up -d
+    - name: setup network by utils/docker-network.sh
+      script: >
+        "{{ docker_network_script }}" >>
+        "{{ docker_network_done_file }}" creates="{{ docker_network_done_file }}"
+    - name: wait for docker to come up
+      pause: seconds=60
+
+- include: ping.yaml
+
+- name: setup docker containers
+  hosts: fabrics
+  gather_facts: no
+  vars:
+    ansible_user: admin
+  tasks:
+    - name: move dplane interface to the net namespace by utils/ops-if-netns.sh
+      become: yes
+      vars:
+        done: /tmp/ops_if_netns.done
+      command: >
+        /home/admin/bin/ops-if-netns.sh > "{{ done }}" creates="{{ done }}"
+
+- name: setup docker containers
+  hosts: spines
+  gather_facts: no
+  vars:
+    ansible_user: admin
+  tasks:
+    - name: move dplane interface to the net namespace by utils/ops-if-netns.sh
+      become: yes
+      vars:
+        done: /tmp/ops_if_netns.done
+      command: >
+        /home/admin/bin/ops-if-netns.sh > "{{ done }}" creates="{{ done }}"
+
+- name: setup docker containers
+  hosts: leaves
+  gather_facts: no
+  vars:
+    ansible_user: admin
+  tasks:
+    - name: move dplane interface to the net namespace by utils/ops-if-netns.sh
+      become: yes
+      vars:
+        done: /tmp/ops_if_netns.done
+      command: >
+        /home/admin/bin/ops-if-netns.sh > "{{ done }}" creates="{{ done }}"

@@ -1,0 +1,58 @@
+version: '2'
+services:
+  build:
+    build: .
+    image: openswitch/local_build
+    command: /bin/true
+  fab1:
+    image: openswitch/local_build
+    container_name: "fab1"
+    privileged: true
+    ports:
+      - "10022:22"
+    volumes:
+      - /tmp:/tmp
+      - /dev/log:/dev/log
+      - /sys/fs/cgroup:/sys/fs/cgroup
+    networks:
+      - default
+    command: /sbin/init
+  spine1:
+    image: openswitch/local_build
+    container_name: "spine1"
+    privileged: true
+    ports:
+      - "11022:22"
+    volumes:
+      - /tmp:/tmp
+      - /dev/log:/dev/log
+      - /sys/fs/cgroup:/sys/fs/cgroup
+    networks:
+      - default
+    command: /sbin/init
+  spine2:
+    image: openswitch/local_build
+    container_name: "spine2"
+    privileged: true
+    ports:
+      - "12022:22"
+    volumes:
+      - /tmp:/tmp
+      - /dev/log:/dev/log
+      - /sys/fs/cgroup:/sys/fs/cgroup
+    networks:
+      - default
+    command: /sbin/init
+  spine3:
+    image: openswitch/local_build
+    container_name: "spine3"
+    privileged: true
+    ports:
+      - "16022:22"
+    volumes:
+      - /tmp:/tmp
+      - /dev/log:/dev/log
+      - /sys/fs/cgroup:/sys/fs/cgroup
+    networks:
+      - default
+    command: /sbin/init
