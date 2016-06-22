@@ -1,0 +1,34 @@
+[all:vars]
+ansible_host=localhost
+
+[all]
+docker
+fab1   ansible_port=10022
+spine1 ansible_port=11022
+spine2 ansible_port=12022
+spine3 ansible_port=16022
+leaf1  ansible_port=13022
+leaf2  ansible_port=14022
+leaf3  ansible_port=15022
+leaf4  ansible_port=17022
+
+[switches:children]
+fabrics
+spines
+leaves
+
+[fabrics]
+fab1
+
+[spines]
+spine[1:3]
+
+[leaves]
+leaf[1:4]
+
+# Group for the tests/*.yaml playbooks used by both travis CI.
+# You can use the local fab1 switch to run the test as:
+#
+# $ ansible-playbook tests/test_bridge.yml
+[switches@travis]
+fab1

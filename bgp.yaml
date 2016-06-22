@@ -1,0 +1,89 @@
+---
+- name: BGP configuration on fabric switches
+  hosts: fabrics
+  gather_facts: no
+  vars:
+    ops_debug: no
+  roles:
+    - role: bgp
+
+- name: BGP configuration on spine switches
+  hosts: spines
+  gather_facts: no
+  vars:
+    ops_debug: no
+  roles:
+    - role: bgp
+
+- name: BGP configuration on leaf switches
+  hosts: leaves
+  gather_facts: no
+  vars:
+    ops_debug: no
+  roles:
+    - role: bgp
+
+- name: check the switch configuration
+  hosts: switches
+  gather_facts: no
+  vars:
+    ops_debug: yes
+  tasks:
+    - include: tasks/cli/check_running_config.yaml
+
+- name: wait for BGP peering up
+  hosts: switches
+  gather_facts: no
+  tasks:
+    - pause: seconds=60
+
+- name: check the BGP peering
+  hosts: switches
+  gather_facts: no
+  vars:
+    ops_debug: no
+  tasks:
+    - name: show ip bgp neighbors
+      ops_command:
+        commands:
+          - show ip bgp neighbors
+        provider: "{{ ops_provider }}"
+        waitfor:
+          - "result[0] contains 'state: Established'"
+        interval: 3
+        retries: 3
+      register: result
+      connection: local
+    - name: print out the result
+      debug: var=result
+
+- name: check the IP routing table (RIB)
+  hosts: switches
+  gather_facts: yes
+  vars:
+    ops_debug: no
+  tasks:
+    - name: show ip route
+      ops_command:
+        commands:
+          - show ip route
+        provider: "{{ ops_provider }}"
+        waitfor:
+          - "result[0] contains '172.16.0.0/24'"
+          - "result[0] contains '172.16.1.0/24'"
+          - "result[0] contains '172.16.2.0/24'"
+          - "result[0] contains '172.16.11.0/24'"
+          - "result[0] contains '172.16.12.0/24'"
+          - "result[0] contains '172.16.13.0/24'"
+          - "result[0] contains '172.16.21.0/24'"
+          - "result[0] contains '172.16.22.0/24'"
+          - "result[0] contains '172.16.23.0/24'"
+          - "result[0] contains '172.16.30.0/24'"
+          - "result[0] contains '172.16.40.0/24'"
+          - "result[0] contains '172.16.50.0/24'"
+        interval: 3
+        retries: 3
+      register: result
+      connection: local
+    - name: print out the result
+      debug: var=result

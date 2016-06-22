@@ -1,0 +1,66 @@
+---
+- name: check the switch version
+  hosts: switches
+  gather_facts: no
+  vars:
+    ops_debug: no
+    expected: 0.4.0
+  tasks:
+    - include: tasks/cli/check_version.yaml
+      tags: [ base, check, cli ]
+    - include: tasks/rest/check_version.yaml
+      tags: [ base, check, rest ]
+
+- name: L2/L3 configuration on fabric switches
+  hosts: fabrics
+  gather_facts: no
+  vars:
+    ops_intf_admin_state: up
+    ops_debug: no
+  roles:
+    - { role: switch, tags: [ base, config, dc ] }
+
+- name: L2/L3 configuration on spine switches
+  hosts: spines
+  gather_facts: no
+  vars:
+    ops_intf_admin_state: up
+    ops_debug: no
+  roles:
+    - { role: switch, tags: [ base, config, dc ] }
+
+- name: L2/L3 configuration on leaf switches
+  hosts: leaves
+  gather_facts: no
+  vars:
+    ops_intf_admin_state: up
+    ops_debug: no
+  roles:
+    - { role: switch, tags: [ base, config, dc ] }
+
+- name: check the switch hostname
+  hosts: switches
+  gather_facts: no
+  vars:
+    ops_debug: no
+    expected: '{{ ops_system_hostname }}'
+  tasks:
+    - include: tasks/cli/check_hostname.yaml
+      tags: [ base, check, cli ]
+    - include: tasks/rest/check_hostname.yaml
+      tags: [ base, check, rest ]
+
+- name: check the switch configuration
+  hosts: switches
+  gather_facts: no
+  vars:
+    ops_debug: yes
+    expected: '{{ ops_system_hostname }}'
+  tasks:
+    - include: tasks/cli/check_running_config.yaml
+      tags: [ base, check, cli ]
+    - include: tasks/rest/check_full_config.yaml
+      tags: [ base, check, rest ]
+
+- include: bgp.yaml
+  tags: [ bgp ]
