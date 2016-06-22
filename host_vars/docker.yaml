@@ -1,0 +1,19 @@
+---
+# Your ssh public key file name to be used for the switch
+# ssh authentication.
+your_public_key: id_rsa.pub
+
+# Docker compose file for six switch topology.
+docker_compose_file: docker-compose6.yaml
+
+# Docker network shell script for six switch topology.
+docker_network_script: docker-network6.sh
+
+# Temporary file to indicate the docker network setting.
+docker_network_done_file: /tmp/docker_network.done
+
+# Docker Server File (Undefined Previously)
+docker_server_file: Dockerfile
+
+# Docker network shell script for management network.
+docker_mgmt_network_script: mgmt-net.sh
