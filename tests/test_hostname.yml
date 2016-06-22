@@ -1,0 +1,61 @@
+---
+- name: configure the hostname through switch role
+  hosts: switches@travis
+  gather_facts: yes
+  vars:
+    ansible_user: admin
+    ops_system_hostname: SimpleHostname
+    ops_debug: yes
+    ops_provider:
+      username: netop
+      password: netop
+      host: "{{ ansible_host }}"
+      port: "{{ ansible_port }}"
+
+  roles:
+    - role: switch
+
+  tasks:
+    - name: show version CLI
+      ops_command:
+        commands:
+          - show version
+        provider: "{{ ops_provider }}"
+        interval: 1
+        retries: 2
+      register: show_version_result
+      connection: local
+
+    - name: show version result
+      debug: var=show_version_result
+      when: ops_debug
+
+    - name: show running-config CLI
+      ops_command:
+        commands:
+          - show running-config
+        provider: "{{ ops_provider }}"
+        interval: 5
+        retries: 3
+      register: show_running_config_result
+      connection: local
+
+    - name: show running-config result
+      debug: var=show_running_config_result
+      when: ops_debug
+
+  post_tasks:
+    - name: check the hostname on the switch
+      ops_command:
+        commands:
+          - show hostname
+        provider: "{{ ops_provider }}"
+        waitfor:
+          - "result[0] contains '{{ ops_system_hostname }}'"
+        interval: 1
+        retries: 2
+      register: test_result
+      connection: local
+    - name: debug the test result
+      debug: var=test_result
+      when: ops_debug
