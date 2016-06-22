@@ -1,0 +1,28 @@
+---
+# We'll use the admin account to access OpenSwitch hosts.
+ansible_user: admin
+
+# Those will be secured by the ansible vault in the real environment.
+ops_username: netop
+ops_password: netop
+
+# ops_command provider variable.
+ops_provider:
+  username: "{{ ops_username }}"
+  password: "{{ ops_password }}"
+  host: "{{ ansible_host }}"
+  port: "{{ ansible_port }}"
+
+# Just use the inventory name as the host name.
+ops_system_hostname: "{{ inventory_hostname }}"
+
+# Only eight ports will be used in this environment.
+ops_interfaces:
+  - name: 1
+  - name: 2
+  - name: 3
+  - name: 4
+  - name: 5
+  - name: 6
+  - name: 7
+  - name: 8
