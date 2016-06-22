@@ -1,0 +1,16 @@
+---
+- name: check the show version CLI output
+  ops_command:
+    commands:
+      - show version
+    provider: "{{ ops_provider }}"
+    waitfor:
+      - "result[0] contains {{ expected }}"
+    interval: 3
+    retries: 2
+  register: result
+  connection: local
+
+- name: print the CLI output
+  debug: var=result
+  when: ops_debug
