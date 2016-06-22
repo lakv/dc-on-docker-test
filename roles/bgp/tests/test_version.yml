@@ -1,0 +1,60 @@
+---
+- name: noop test with bgp role
+  hosts: switches@travis
+  vars:
+    ansible_user: admin
+    ops_debug: yes
+    ops_name: OpenSwitch
+    ops_provider:
+      username: netop
+      password: netop
+      host: "{{ ansible_host }}"
+      port: "{{ ansible_port }}"
+
+  roles:
+    - bgp
+
+  tasks:
+    - name: show version CLI
+      ops_command:
+        commands:
+          - show version
+        provider: "{{ ops_provider }}"
+        interval: 1
+        retries: 2
+      register: show_version_result
+      connection: local
+
+    - name: show version result
+      debug: var=show_version_result
+      when: ops_debug
+
+    - name: show running-config CLI
+      ops_command:
+        commands:
+          - show running-config
+        provider: "{{ ops_provider }}"
+        interval: 5
+        retries: 3
+      register: show_running_config_result
+      connection: local
+
+    - name: show running-config result
+      debug: var=show_running_config_result
+      when: ops_debug
+
+  post_tasks:
+    - name: check if switch responds to 'show version' CLI
+      ops_command:
+        commands:
+          - show version
+        provider: "{{ ops_provider }}"
+        waitfor:
+          - "result[0] contains {{ ops_name }}"
+        interval: 1
+        retries: 2
+      register: result
+      connection: local
+    - name: debug the result
+      debug: var=result
+      when: ops_debug
